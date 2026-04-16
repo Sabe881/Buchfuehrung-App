@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Buchführung + Lager</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f2f2f2;
+}
+
+.container {
+    padding: 20px;
+    margin-bottom: 80px;
+}
+
+.hidden {
+    display: none;
+}
+
+button {
+    padding: 15px;
+    margin: 10px 0;
+    width: 100%;
+    font-size: 16px;
+}
+
+input {
+    padding: 10px;
+    width: 100%;
+    margin: 5px 0;
+}
+
+.nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    background: white;
+    border-top: 1px solid #ccc;
+}
+
+.nav button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: none;
+}
+
+.big-btn {
+    font-size: 30px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="home" class="container">
+    <h2>🏠 Home</h2>
+    <p><b>Lagerwert:</b> <span id="lagerwert">0</span></p>
+    <p><b>Kontostand:</b> <span id="konto">0</span></p>
+</div>
+
+<div id="lager" class="container hidden">
+    <h2>📦 Lagermanagement</h2>
+
+    <input id="produktName" placeholder="Produkt hinzufügen">
+    <button onclick="produktHinzufuegen()">Produkt anlegen</button>
+
+    <select id="produkte"></select>
+
+    <input id="menge" type="number" placeholder="Menge">
+    <input id="preis" type="number" placeholder="Preis">
+
+    <button class="big-btn" onclick="plus()">➕ Einkauf</button>
+    <button class="big-btn" onclick="minus()">➖ Verkauf</button>
+
+    <h3>Bestand:</h3>
+    <div id="liste"></div>
+</div>
+
+<div id="finanzen" class="container hidden">
+    <h2>💰 Finanzen</h2>
+    <p><b>Kontostand:</b> <span id="konto2">0</span></p>
+</div>
+
+<div class="nav">
+    <button onclick="show('home')">🏠</button>
+    <button onclick="show('lager')">📦</button>
+    <button onclick="show('finanzen')">💰</button>
+</div>
+
+<script>
+let produkte = JSON.parse(localStorage.getItem("produkte")) || {};
+let konto = parseFloat(localStorage.getItem("konto")) || 0;
+
+function speichern() {
+    localStorage.setItem("produkte", JSON.stringify(produkte));
+    localStorage.setItem("konto", konto);
+}
+
+function show(seite) {
+    document.querySelectorAll(".container").forEach(c => c.classList.add("hidden"));
+    document.getElementById(seite).classList.remove("hidden");
+    update();
+}
+
+function produktHinzufuegen() {
+    let name = document.getElementById("produktName").value;
+    if (!name) return;
+    produkte[name] = 0;
+    speichern();
+    update();
+}
+
+function plus() {
+    let p = document.getElementById("produkte").value;
+    let m = parseInt(document.getElementById("menge").value);
+    let preis = parseFloat(document.getElementById("preis").value);
+
+    produkte[p] += m;
+    konto -= preis;
+
+    speichern();
+    update();
+}
+
+function minus() {
+    let p = document.getElementById("produkte").value;
+    let m = parseInt(document.getElementById("menge").value);
+    let preis = parseFloat(document.getElementById("preis").value);
+
+    produkte[p] -= m;
+    konto += preis;
+
+    speichern();
+    update();
+}
+
+function update() {
+    let select = document.getElementById("produkte");
+    select.innerHTML = "";
+    let liste = "";
+
+    for (let p in produkte) {
+        let option = document.createElement("option");
+        option.value = p;
+        option.textContent = p;
+        select.appendChild(option);
+
+        liste += `<p>${p}: ${produkte[p]}</p>`;
+    }
+
+    document.getElementById("liste").innerHTML = liste;
+    document.getElementById("lagerwert").textContent = Object.values(produkte).reduce((a,b)=>a+b,0);
+    document.getElementById("konto").textContent = konto;
+    document.getElementById("konto2").textContent = konto;
+}
+
+update();
+</script>
+
+</body>
+</html>
